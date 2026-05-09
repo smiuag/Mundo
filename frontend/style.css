@@ -318,25 +318,24 @@ section h2 {
     color: #cbd5e1;
     font-size: 0.95em;
     margin: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
 }
 
 .event-description {
-    max-height: 80px;
+    max-height: 60px;
     overflow: hidden;
-    transition: max-height 0.3s ease;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+    opacity: 1;
 }
 
 .event-description.expanded {
-    max-height: none;
-    -webkit-line-clamp: unset;
+    max-height: 1000px;
+    opacity: 1;
 }
 
 .event-toggle {
     transition: transform 0.3s ease;
     color: #94a3b8;
+    display: inline-block;
 }
 
 footer {
