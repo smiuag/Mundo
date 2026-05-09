@@ -12,8 +12,14 @@ world = {
             "race": "Human",
             "personality": "Aggressive, militaristic",
             "goals": ["expand territory", "military dominance"],
+            "population": 150000,
             "gold": 1000,
             "spies": 5,
+            "military": {
+                "warriors": 5000,
+                "archers": 3000,
+                "cavalry": 1500
+            },
             "relationships": {
                 "ironhold": -10,
                 "silvantir": 5,
@@ -32,8 +38,14 @@ world = {
             "race": "Dwarf",
             "personality": "Defensive, merchant-minded",
             "goals": ["economic growth", "trade routes"],
+            "population": 120000,
             "gold": 1500,
             "spies": 3,
+            "military": {
+                "warriors": 3000,
+                "archers": 1500,
+                "cavalry": 500
+            },
             "relationships": {
                 "valorheim": -10,
                 "silvantir": 15,
@@ -52,8 +64,14 @@ world = {
             "race": "Elf",
             "personality": "Mysterious, isolationist",
             "goals": ["preserve nature", "magical research"],
+            "population": 100000,
             "gold": 800,
             "spies": 8,
+            "military": {
+                "warriors": 2000,
+                "archers": 4000,
+                "cavalry": 800
+            },
             "relationships": {
                 "valorheim": 5,
                 "ironhold": 15,
@@ -72,8 +90,14 @@ world = {
             "race": "Mixed",
             "personality": "Cunning, ambitious",
             "goals": ["chaos and profit", "political influence"],
+            "population": 180000,
             "gold": 600,
             "spies": 10,
+            "military": {
+                "warriors": 4000,
+                "archers": 2500,
+                "cavalry": 1200
+            },
             "relationships": {
                 "valorheim": -5,
                 "ironhold": 10,
