@@ -216,6 +216,9 @@
                     const eventsList = document.getElementById("eventsList");
                     const recentEvents = events.events.slice(-10).reverse();
 
+                    console.log("Events to render:", recentEvents);
+                    recentEvents.forEach((e, i) => console.log(`Event ${i}:`, e));
+
                     if (recentEvents.length === 0) {
                         eventsList.innerHTML = "<p>Sin eventos aún.</p>";
                     } else {
