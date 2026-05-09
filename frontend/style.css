@@ -320,6 +320,21 @@ section h2 {
     margin: 0;
 }
 
+.event-description {
+    max-height: 60px;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.event-description.expanded {
+    max-height: 500px;
+}
+
+.event-toggle {
+    transition: transform 0.3s ease;
+    color: #94a3b8;
+}
+
 footer {
     background: #0f172a;
     border-top: 2px solid #3b82f6;

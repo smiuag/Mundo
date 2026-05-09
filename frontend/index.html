@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Constructor de Mundos - Simulador RPG</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
@@ -56,6 +57,18 @@
         const BACKEND_URL = "/api";
         let comparisonChart = null;
         let currentWorld = null;
+
+        function toggleEvent(eventId) {
+            const elem = document.getElementById(eventId);
+            if (elem) {
+                elem.classList.toggle('expanded');
+                // Rotar el toggle icon
+                const toggle = elem.parentElement.querySelector('.event-toggle');
+                if (toggle) {
+                    toggle.style.transform = elem.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0deg)';
+                }
+            }
+        }
 
         async function getWorld() {
             try {
@@ -258,13 +271,14 @@
                         eventsList.innerHTML = "<p>Sin eventos aún.</p>";
                     } else {
                         eventsList.innerHTML = recentEvents
-                            .map(e => `
-                                <div class="event-item event-${e.type || 'default'}">
+                            .map((e, i) => `
+                                <div class="event-item event-${e.type || 'default'}" onclick="toggleEvent('event-${i}')" style="cursor: pointer;">
                                     <div class="event-header">
                                         <strong>${e.kingdom}</strong>
                                         <span class="event-type">${e.action || 'Acción'}</span>
+                                        <span class="event-toggle">▼</span>
                                     </div>
-                                    <p>${e.description}</p>
+                                    <p class="event-description" id="event-${i}">${e.description}</p>
                                 </div>
                             `)
                             .join("");
