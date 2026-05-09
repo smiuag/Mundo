@@ -21,10 +21,13 @@ docker exec ollama ollama pull gemma2:27b
 docker stop ollama
 docker rm ollama
 
-# 3. Iniciar servicios
+# 3. Inicializar mundo con reinos y ubicaciones
+python init_world.py
+
+# 4. Iniciar servicios
 docker-compose up -d
 
-# 4. Abrir interfaz
+# 5. Abrir interfaz
 http://localhost:3000
 ```
 
