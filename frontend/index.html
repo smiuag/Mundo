@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constructor de Mundos - Simulador RPG</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚔️ Constructor de Mundos</h1>
+            <p>Simulador RPG Avanzado</p>
+            <div class="header-info">
+                <span id="turnDisplay">Turno: 0</span>
+            </div>
+        </header>
+
+        <main>
+            <section class="controls">
+                <button id="advanceTurnBtn" onclick="advanceTurn()" class="btn-primary">
+                    ⏭️ Siguiente Turno
+                </button>
+                <button id="refreshBtn" onclick="refreshWorld()" class="btn-secondary">
+                    🔄 Actualizar
+                </button>
+            </section>
+
+            <section class="dashboard">
+                <div class="kingdoms-grid" id="kingdomsList">
+                    <p>Cargando reinos...</p>
+                </div>
+            </section>
+
+            <section class="charts-section">
+                <h2>Evolución de Reinos</h2>
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </section>
+
+            <section class="events-section">
+                <h2>Eventos del Turno</h2>
+                <div id="eventsList" class="events-list">
+                    <p>Sin eventos aún.</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Constructor de Mundos - Simulación IA Avanzada</p>
+        </footer>
+    </div>
+
+    <script>
+        const BACKEND_URL = "/api";
+        let comparisonChart = null;
+        let currentWorld = null;
+
+        async function getWorld() {
+            try {
+                console.log("Fetching from:", `${BACKEND_URL}/world`);
+                const response = await fetch(`${BACKEND_URL}/world`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const data = await response.json();
+                console.log("World data received:", data);
+                return data;
+            } catch (error) {
+                console.error("Error fetching world:", error);
+                return null;
+            }
+        }
+
+        async function getEvents() {
+            try {
+                console.log("Fetching from:", `${BACKEND_URL}/events`);
+                const response = await fetch(`${BACKEND_URL}/events`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const data = await response.json();
+                console.log("Events data received:", data);
+                return data;
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                return null;
+            }
+        }
+
+        function renderKingdomCard(kingdom) {
+            const tracks = kingdom.tracks || { happiness: 0, military_power: 0, resources: 0, stability: 0, culture: 0 };
+            const colors = {
+                'valorheim': '#FF6B6B',
+                'silvantir': '#4ECDC4',
+                'ironhold': '#95A5A6',
+                'scorvale': '#F39C12'
+            };
+            const color = colors[kingdom.id] || '#667eea';
+
+            return `
+                <div class="kingdom-card" style="border-top: 4px solid ${color}">
+                    <div class="kingdom-header">
+                        <h3>${kingdom.name}</h3>
+                        <span class="kingdom-race">${kingdom.race}</span>
+                    </div>
+
+                    <div class="kingdom-stats">
+                        <div class="stat">
+                            <label>Población</label>
+                            <div class="value">${(kingdom.population / 1000).toFixed(0)}K</div>
+                        </div>
+                        <div class="stat">
+                            <label>Oro</label>
+                            <div class="value">${kingdom.gold}</div>
+                        </div>
+                        <div class="stat">
+                            <label>Ejército</label>
+                            <div class="value">${kingdom.military.warriors + kingdom.military.archers + kingdom.military.cavalry}</div>
+                        </div>
+                    </div>
+
+                    <div class="tracks">
+                        <div class="track-bar">
+                            <label>Felicidad</label>
+                            <div class="bar-bg"><div class="bar-fill" style="width: ${tracks.happiness}%; background: #2ecc71"></div></div>
+                            <span>${tracks.happiness}%</span>
+                        </div>
+                        <div class="track-bar">
+                            <label>Poder Militar</label>
+                            <div class="bar-bg"><div class="bar-fill" style="width: ${Math.min(tracks.military_power / 10, 100)}%; background: #e74c3c"></div></div>
+                        </div>
+                        <div class="track-bar">
+                            <label>Recursos</label>
+                            <div class="bar-bg"><div class="bar-fill" style="width: ${tracks.resources}%; background: #f39c12"></div></div>
+                            <span>${tracks.resources}%</span>
+                        </div>
+                        <div class="track-bar">
+                            <label>Estabilidad</label>
+                            <div class="bar-bg"><div class="bar-fill" style="width: ${tracks.stability}%; background: #3498db"></div></div>
+                            <span>${tracks.stability}%</span>
+                        </div>
+                    </div>
+
+                    <div class="relationships">
+                        <h4>Relaciones</h4>
+                        <div class="rel-list">
+                            ${Object.entries(kingdom.relationships).map(([id, val]) => {
+                                const relKingdom = currentWorld?.kingdoms.find(k => k.id === id);
+                                const color = val > 20 ? '#2ecc71' : val < -20 ? '#e74c3c' : '#f39c12';
+                                return `<div class="rel-item" style="color: ${color}">${relKingdom?.name.substring(0, 3)}: ${val > 0 ? '+' : ''}${val}</div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateChart(world) {
+            if (typeof Chart === 'undefined') {
+                console.log("Chart.js no disponible, saltando gráfico");
+                return;
+            }
+
+            const ctx = document.getElementById('comparisonChart');
+            if (!ctx) return;
+
+            const kingdoms = world.kingdoms;
+            const colors = ['#FF6B6B', '#4ECDC4', '#95A5A6', '#F39C12'];
+
+            if (comparisonChart) {
+                comparisonChart.destroy();
+            }
+
+            comparisonChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Población', 'Oro', 'Ejército', 'Felicidad', 'Estabilidad'],
+                    datasets: kingdoms.map((k, i) => {
+                        const tracks = k.tracks || {};
+                        const military = k.military.warriors + k.military.archers + k.military.cavalry;
+                        return {
+                            label: k.name,
+                            data: [
+                                k.population / 100,
+                                k.gold,
+                                military / 10,
+                                tracks.happiness || 50,
+                                tracks.stability || 50
+                            ],
+                            borderColor: colors[i],
+                            backgroundColor: colors[i] + '33',
+                            tension: 0.4
+                        };
+                    })
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 500
+                        }
+                    }
+                }
+            });
+        }
+
+        async function advanceTurn() {
+            const btn = document.getElementById("advanceTurnBtn");
+            const kingdomsList = document.getElementById("kingdomsList");
+            btn.disabled = true;
+            btn.textContent = "⏳ Procesando turno...";
+            kingdomsList.innerHTML = "<p style='text-align: center; font-size: 18px; padding: 20px;'>🤔 Los reinos están pensando...<br><small>(Esto puede tardar 5-15 minutos con Gemma 27B)</small></p>";
+
+            try {
+                console.log("Iniciando turno...");
+                await fetch(`${BACKEND_URL}/turn`, { method: "POST" });
+                console.log("Turno procesado, actualizando mundo...");
+                await refreshWorld();
+            } catch (error) {
+                console.error("Error al procesar turno:", error);
+                kingdomsList.innerHTML = "<p>Error procesando turno: " + error.message + "</p>";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "⏭️ Siguiente Turno";
+            }
+        }
+
+        async function refreshWorld() {
+            try {
+                currentWorld = await getWorld();
+
+                if (!currentWorld || !currentWorld.kingdoms) {
+                    document.getElementById("kingdomsList").innerHTML = "<p>Error cargando datos</p>";
+                    return;
+                }
+
+                document.getElementById("turnDisplay").textContent = `Turno: ${currentWorld.metadata.turn}`;
+
+                const kingdomsHtml = currentWorld.kingdoms
+                    .map(k => renderKingdomCard(k))
+                    .join("");
+                document.getElementById("kingdomsList").innerHTML = kingdomsHtml;
+
+                setTimeout(() => updateChart(currentWorld), 100);
+
+                const events = await getEvents();
+                if (events?.events) {
+                    const eventsList = document.getElementById("eventsList");
+                    const recentEvents = events.events.slice(-10).reverse();
+
+                    if (recentEvents.length === 0) {
+                        eventsList.innerHTML = "<p>Sin eventos aún.</p>";
+                    } else {
+                        eventsList.innerHTML = recentEvents
+                            .map(e => `
+                                <div class="event-item event-${e.type || 'default'}">
+                                    <div class="event-header">
+                                        <strong>${e.kingdom}</strong>
+                                        <span class="event-type">${e.action || 'Acción'}</span>
+                                    </div>
+                                    <p>${e.description}</p>
+                                </div>
+                            `)
+                            .join("");
+                    }
+                }
+            } catch (err) {
+                console.error("Error en refreshWorld:", err);
+                document.getElementById("kingdomsList").innerHTML = "<p>Error: " + err.message + "</p>";
+            }
+        }
+
+        window.addEventListener("load", refreshWorld);
+    </script>
+</body>
+</html>

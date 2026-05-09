@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: world-builder-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_models:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /root/.ollama/id_ed25519 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: world-builder-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+    volumes:
+      - ./data:/app/data
+      - ./backend/main.py:/app/main.py
+      - ./backend/core:/app/core
+      - ./backend/agents:/app/agents
+    depends_on:
+      ollama:
+        condition: service_healthy
+    command: python main.py
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: world-builder-frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend/index.html:/usr/share/nginx/html/index.html
+      - ./frontend/style.css:/usr/share/nginx/html/style.css
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend

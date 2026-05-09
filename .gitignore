@@ -1,0 +1,30 @@
+# Models
+ollama_models/
+
+# Data
+data/world.json
+data/ollama_response_debug.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
