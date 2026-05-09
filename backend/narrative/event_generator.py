@@ -92,10 +92,11 @@ VALIDACION:
 
     try:
         print(f"[NARRATIVE] Conectando a Ollama en {OLLAMA_URL}...", flush=True)
+        print(f"[NARRATIVE] Esperando respuesta (timeout: 600 segundos = 10 minutos)...", flush=True)
         response = requests.post(
             f"{OLLAMA_URL}/api/generate",
             json={"model": MODEL, "prompt": prompt, "stream": False},
-            timeout=240
+            timeout=600
         )
 
         if response.status_code != 200:

@@ -6,7 +6,7 @@ import re
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
 MODEL = "gemma2:27b"
 
-def call_ollama(prompt: str, timeout: int = 120) -> str:
+def call_ollama(prompt: str, timeout: int = 600) -> str:
     import sys
     try:
         print(f"[LLM] Llamando a {MODEL} en {OLLAMA_URL}...", flush=True, file=sys.stderr)
