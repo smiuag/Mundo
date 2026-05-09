@@ -59,13 +59,24 @@
         let currentWorld = null;
 
         function toggleEvent(eventId) {
+            console.log("Toggling event:", eventId);
             const elem = document.getElementById(eventId);
+            console.log("Element found:", elem);
+
             if (elem) {
                 elem.classList.toggle('expanded');
-                // Rotar el toggle icon
-                const toggle = elem.parentElement.querySelector('.event-toggle');
-                if (toggle) {
-                    toggle.style.transform = elem.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0deg)';
+                console.log("Element expanded:", elem.classList.contains('expanded'));
+
+                // Rotar el toggle icon - buscar en el contenedor del evento
+                const eventItem = elem.closest('.event-item');
+                if (eventItem) {
+                    const toggle = eventItem.querySelector('.event-toggle');
+                    console.log("Toggle found:", toggle);
+                    if (toggle) {
+                        const isExpanded = elem.classList.contains('expanded');
+                        toggle.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                        toggle.style.transition = 'transform 0.3s ease';
+                    }
                 }
             }
         }
@@ -192,12 +203,13 @@
                     labels: ['Población', 'Oro', 'Ejército', 'Felicidad', 'Estabilidad'],
                     datasets: kingdoms.map((k, i) => {
                         const tracks = k.tracks || {};
-                        const military = k.military.warriors + k.military.archers + k.military.cavalry;
+                        const military = k.military ? (k.military.warriors + k.military.archers + k.military.cavalry) : 0;
+                        console.log(`${k.name}: population=${k.population}, gold=${k.gold}, military=${military}`);
                         return {
                             label: k.name,
                             data: [
-                                k.population / 100,
-                                k.gold,
+                                (k.population || 0) / 100,
+                                k.gold || 0,
                                 military / 10,
                                 tracks.happiness || 50,
                                 tracks.stability || 50
